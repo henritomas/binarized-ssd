@@ -8,9 +8,9 @@ p_kwargs = dict(input_quantizer="ste_sign",
           kernel_quantizer="ste_sign",
           kernel_constraint="weight_clip")
 
-d_kwargs = dict(input_quantizer="ste_sign",
-          depthwise_quantizer="ste_sign",
-          depthwise_constraint="weight_clip")
+d_kwargs = dict(input_quantizer=None,
+          depthwise_quantizer=None,
+          depthwise_constraint=None)
 
 #First layer only, not quantized
 def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
