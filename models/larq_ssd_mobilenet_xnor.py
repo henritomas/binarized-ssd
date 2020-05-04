@@ -17,9 +17,9 @@ from keras_layers.tensorflow_keras_layer_DecodeDetectionsFast import DecodeDetec
 #Larq layers
 from larq.layers import QuantConv2D, QuantDepthwiseConv2D
 
-kwargs = dict(input_quantizer="ste_sign",
-          kernel_quantizer="ste_sign",
-          kernel_constraint="weight_clip")
+kwargs = dict(input_quantizer=None,
+          kernel_quantizer=None,
+          kernel_constraint=None)
 
 def ssd_300(mode,
             image_size,

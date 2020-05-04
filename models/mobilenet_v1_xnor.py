@@ -42,7 +42,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                         name='conv_dw_%d' % block_id,
                         **d_kwargs)(inputs)
     x = BatchNormalization(axis=channel_axis, name='conv_dw_%d_bn' % block_id)(x)
-    x = Activation('relu', name='conv_dw_%d_relu' % block_id)(x)
+    #x = Activation('relu', name='conv_dw_%d_relu' % block_id)(x)
 
     x = QuantConv2D(pointwise_conv_filters, (1, 1),
                padding='same',
@@ -51,7 +51,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                name='conv_pw_%d' % block_id,
                **p_kwargs)(x)
     x = BatchNormalization(axis=channel_axis, name='conv_pw_%d_bn' % block_id)(x)
-    x = Activation('relu', name='conv_pw_%d_relu' % block_id)(x)
+    #x = Activation('relu', name='conv_pw_%d_relu' % block_id)(x)
     return x
 
 def mobilenet(input_tensor, alpha=1.0, depth_multiplier=1):
