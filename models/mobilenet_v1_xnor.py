@@ -4,10 +4,6 @@ from tensorflow.keras.layers import Input, Lambda, Conv2D, DepthwiseConv2D, MaxP
 #Larq layers
 from larq.layers import QuantConv2D, QuantDepthwiseConv2D
 
-kwargs = dict(input_quantizer="ste_sign",
-          kernel_quantizer="ste_sign",
-          kernel_constraint="weight_clip")
-
 #First layer only, not quantized
 def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
 
@@ -27,6 +23,10 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
 def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                           depth_multiplier=1, strides=(1, 1), block_id=1):
  
+    kwargs = dict(input_quantizer="ste_sign",
+          kernel_quantizer="ste_sign",
+          kernel_constraint="weight_clip")
+
     channel_axis = 3
     pointwise_conv_filters = int(pointwise_conv_filters * alpha)
 
