@@ -4,7 +4,7 @@ from tensorflow.keras.layers import Input, Lambda, Conv2D, DepthwiseConv2D, MaxP
 #Larq layers
 from larq.layers import QuantConv2D, QuantDepthwiseConv2D
 
-p_kwargs = dict(input_quantizer=None,
+p_kwargs = dict(input_quantizer="ste_sign",
           kernel_quantizer="ste_sign",
           kernel_constraint="weight_clip")
 
