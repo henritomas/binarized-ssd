@@ -4,6 +4,14 @@ from tensorflow.keras.layers import Input, Lambda, Conv2D, DepthwiseConv2D, MaxP
 #Larq layers
 from larq.layers import QuantConv2D, QuantDepthwiseConv2D
 
+kwargs = dict(input_quantizer="ste_sign",
+          kernel_quantizer="ste_sign",
+          kernel_constraint="weight_clip")
+
+d_kwargs = dict(input_quantizer="ste_sign",
+          depthwise_quantizer="ste_sign",
+          depthwise_constraint="weight_clip")
+
 #First layer only, not quantized
 def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
 
@@ -23,10 +31,6 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
 def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                           depth_multiplier=1, strides=(1, 1), block_id=1):
  
-    kwargs = dict(input_quantizer="ste_sign",
-          kernel_quantizer="ste_sign",
-          kernel_constraint="weight_clip")
-
     channel_axis = 3
     pointwise_conv_filters = int(pointwise_conv_filters * alpha)
 
@@ -36,7 +40,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                         strides=strides,
                         use_bias=False,
                         name='conv_dw_%d' % block_id,
-                        **kwargs)(inputs)
+                        **d_kwargs)(inputs)
     x = BatchNormalization(axis=channel_axis, name='conv_dw_%d_bn' % block_id)(x)
     #x = Activation('relu', name='conv_dw_%d_relu' % block_id)(x)
 
