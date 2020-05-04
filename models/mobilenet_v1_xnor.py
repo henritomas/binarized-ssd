@@ -4,7 +4,7 @@ from tensorflow.keras.layers import Input, Lambda, Conv2D, DepthwiseConv2D, MaxP
 #Larq layers
 from larq.layers import QuantConv2D, QuantDepthwiseConv2D
 
-kwargs = dict(input_quantizer=None,
+p_kwargs = dict(input_quantizer=None,
           kernel_quantizer="ste_sign",
           kernel_constraint="weight_clip")
 
@@ -49,7 +49,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                use_bias=False,
                strides=(1, 1),
                name='conv_pw_%d' % block_id,
-               **kwargs)(x)
+               **p_kwargs)(x)
     x = BatchNormalization(axis=channel_axis, name='conv_pw_%d_bn' % block_id)(x)
     #x = Activation('relu', name='conv_pw_%d_relu' % block_id)(x)
     return x
