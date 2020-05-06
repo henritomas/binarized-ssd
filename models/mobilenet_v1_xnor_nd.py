@@ -34,24 +34,11 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
     channel_axis = 3
     pointwise_conv_filters = int(pointwise_conv_filters * alpha)
 
-    #x = QuantDepthwiseConv2D((3, 3),
-    #                    padding='same',
-    #                    depth_multiplier=depth_multiplier,
-    #                    strides=strides,
-    #                    use_bias=False,
-    #                    name='conv_dw_%d' % block_id,
-    #                    **d_kwargs)(inputs)
-    #x = BatchNormalization(axis=channel_axis, name='conv_dw_%d_bn' % block_id)(x)
-    #x = Activation('relu', name='conv_dw_%d_relu' % block_id)(x)
-
-    #x = QuantConv2D(pointwise_conv_filters, (1, 1),
-    #           padding='same',
-    #           use_bias=False,
-    #           strides=(1, 1),
-    #           name='conv_pw_%d' % block_id,
-    #           **p_kwargs)(x)
-    #x = BatchNormalization(axis=channel_axis, name='conv_pw_%d_bn' % block_id)(x)
-    #x = Activation('relu', name='conv_pw_%d_relu' % block_id)(x)
+    if strides==(2,2):
+        inputs = MaxPooling2D(pool_size=(3,3),
+                         strides=(2,2),
+                         padding='same',
+                         name='pool_%d' % block_id)(inputs)
 
     x = QuantConv2D(pointwise_conv_filters, (3, 3),
                padding='same',
@@ -59,13 +46,6 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                strides=(1,1),
                name='conv_pw_%d' % block_id,
                **p_kwargs)(inputs)
-
-    if strides==(2,2):
-        x = MaxPooling2D(pool_size=(3,3),
-                         strides=(2,2),
-                         padding='same',
-                         name='pool_%d' % block_id)(x)
-    
     x = BatchNormalization(axis=channel_axis, name='conv_pw_%d_bn' % block_id)(x)
     return x
 
