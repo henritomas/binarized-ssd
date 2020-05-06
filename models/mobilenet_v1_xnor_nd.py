@@ -56,7 +56,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
     x = QuantConv2D(pointwise_conv_filters, (3, 3),
                padding='same',
                use_bias=False,
-               strides=(1, 1),
+               strides=strides,
                name='conv_pw_%d' % block_id,
                **p_kwargs)(inputs)
     x = BatchNormalization(axis=channel_axis, name='conv_pw_%d_bn' % block_id)(x)
