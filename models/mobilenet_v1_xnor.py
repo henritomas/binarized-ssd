@@ -6,6 +6,8 @@ from tensorflow.keras.layers import Input, Lambda, Conv2D, DepthwiseConv2D, MaxP
 import larq as lq
 from larq.layers import QuantConv2D, QuantDepthwiseConv2D
 
+#implementation of custom quantizer found here:
+#https://github.com/larq/zoo/blob/master/larq_zoo/literature/xnornet.py
 @larq.utils.set_precision(1)
 @larq.utils.register_keras_custom_object
 def xnor_weight_scale(x):
