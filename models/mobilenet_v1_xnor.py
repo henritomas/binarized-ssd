@@ -8,8 +8,8 @@ from larq.layers import QuantConv2D, QuantDepthwiseConv2D
 
 #implementation of custom quantizer found here:
 #https://github.com/larq/zoo/blob/master/larq_zoo/literature/xnornet.py
-@larq.utils.set_precision(1)
-@larq.utils.register_keras_custom_object
+@lq.utils.set_precision(1)
+@lq.utils.register_keras_custom_object
 def xnor_weight_scale(x):
     """
     Clips the weights between -1 and +1 and then calculates a scale factor per
