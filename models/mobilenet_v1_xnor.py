@@ -1,11 +1,24 @@
+import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Lambda, Conv2D, DepthwiseConv2D, MaxPooling2D, BatchNormalization, ELU, Reshape, Concatenate, Activation
 
 #Larq layers
+import larq as lq
 from larq.layers import QuantConv2D, QuantDepthwiseConv2D
 
+@larq.utils.set_precision(1)
+@larq.utils.register_keras_custom_object
+def xnor_weight_scale(x):
+    """
+    Clips the weights between -1 and +1 and then calculates a scale factor per
+    weight filter. See https://arxiv.org/abs/1603.05279 for more details
+    """
+    x = tf.clip_by_value(x, -1, 1)
+    alpha = tf.reduce_mean(tf.abs(x), axis=[0, 1, 2], keepdims=True)
+    return alpha * lq.quantizers.ste_sign(x)
+
 p_kwargs = dict(input_quantizer="ste_sign",
-          kernel_quantizer="ste_sign",
+          kernel_quantizer="xnor_weight_scale",
           kernel_constraint="weight_clip")
 
 d_kwargs = dict(input_quantizer=None,
