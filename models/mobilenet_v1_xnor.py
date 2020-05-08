@@ -38,7 +38,7 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
                use_bias=False,
                strides=strides,
                name='conv1')(inputs)
-    x = BatchNormalization(axis=channel_axis, name='conv1_bn')(x)
+    x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv1_bn')(x)
     x = Activation('relu', name='conv1_relu')(x)
     return x
 
@@ -56,7 +56,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                         use_bias=False,
                         name='conv_dw_%d' % block_id,
                         **d_kwargs)(inputs)
-    x = BatchNormalization(axis=channel_axis, name='conv_dw_%d_bn' % block_id)(x)
+    x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_dw_%d_bn' % block_id)(x)
     #x = Activation('relu', name='conv_dw_%d_relu' % block_id)(x)
 
     x = QuantConv2D(pointwise_conv_filters, (1, 1),
@@ -65,7 +65,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                strides=(1, 1),
                name='conv_pw_%d' % block_id,
                **p_kwargs)(x)
-    x = BatchNormalization(axis=channel_axis, name='conv_pw_%d_bn' % block_id)(x)
+    x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_pw_%d_bn' % block_id)(x)
     #x = Activation('relu', name='conv_pw_%d_relu' % block_id)(x)
     return x
 
