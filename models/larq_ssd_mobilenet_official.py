@@ -8,7 +8,7 @@ import tensorflow.keras.backend as K
 
 
 #from models.depthwise_conv2d import DepthwiseConvolution2D
-from models.mobilenet_v1_xnor import mobilenet
+from models.mobilenet_v1_xnor_2s import mobilenet
 
 from keras_layers.tensorflow_keras_layer_AnchorBoxes import AnchorBoxes
 from keras_layers.tensorflow_keras_layer_DecodeDetections import DecodeDetections
