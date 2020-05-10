@@ -76,7 +76,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_pw_%d_bn' % block_id)(x)
     #x = Activation('relu', name='conv_pw_%d_relu' % block_id)(x)
 
-    if inputs.shape[1:3] == x.shape[1:3]:
+    if inputs.shape[1:] == x.shape[1:]:
         x = Add()([inputs, x])
     
     return x
