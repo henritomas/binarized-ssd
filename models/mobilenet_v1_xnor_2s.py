@@ -29,7 +29,7 @@ stage_2 = dict(input_quantizer="ste_sign",
           kernel_quantizer="xnor_weight_scale",
           kernel_constraint="weight_clip")
 
-p_kwargs = stage_1
+p_kwargs = stage_2
 
 d_kwargs = dict(input_quantizer=None,
           depthwise_quantizer=None,
