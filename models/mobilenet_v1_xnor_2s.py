@@ -61,8 +61,12 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                         kernel_quantizer=None,
                         kernel_constraint=None)
     else:
-        d_kwargs = kwargs
-        p_kwargs = kwargs
+        d_kwargs = dict(input_quantizer=kwargs['input_quantizer'],
+                        depthwise_quantizer=kwargs['kernel_quantizer'],
+                        depthwise_constraint=kwargs['kernel_constraint'])
+        p_kwargs = dict(input_quantizer=kwargs['input_quantizer'],
+                        kernel_quantizer=kwargs['kernel_quantizer'],
+                        kernel_constraint=kwargs['kernel_constraint'])
 
     x = QuantDepthwiseConv2D((3, 3),
                         padding='same',
