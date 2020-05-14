@@ -29,11 +29,7 @@ stage_2 = dict(input_quantizer="ste_sign",
           kernel_quantizer="xnor_weight_scale",
           kernel_constraint="weight_clip")
 
-p_kwargs = stage_2
-
-d_kwargs = dict(input_quantizer=None,
-          depthwise_quantizer=None,
-          depthwise_constraint=None)
+kwargs = stage_2
 
 #First layer only, not quantized
 def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
@@ -56,6 +52,17 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
  
     channel_axis = 3
     pointwise_conv_filters = int(pointwise_conv_filters * alpha)
+
+    if strides==(2,2):
+        d_kwargs = dict(input_quantizer=None,
+                        depthwise_quantizer=None,
+                        depthwise_constraint=None)
+        p_kwargs = dict(input_quantizer=None,
+                        kernel_quantizer=None,
+                        kernel_constraint=None)
+    else:
+        d_kwargs = kwargs
+        p_kwargs = kwargs
 
     x = QuantDepthwiseConv2D((3, 3),
                         padding='same',
