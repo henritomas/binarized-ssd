@@ -54,7 +54,7 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
 
 #Succeeding layers, are quantized
 def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
-                          depth_multiplier=1, strides=(1, 1), block_id=1, stage=stage):
+                          depth_multiplier=1, strides=(1, 1), block_id=1, stage=2):
  
     channel_axis = 3
     pointwise_conv_filters = int(pointwise_conv_filters * alpha)
