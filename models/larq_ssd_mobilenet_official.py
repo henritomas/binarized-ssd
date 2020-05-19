@@ -61,7 +61,7 @@ def ssd_300(mode,
             binary_head=False):
     
     #Binarized pw: pointwise convs
-    if binary_head:
+    if not binary_head:
         pw_kwargs = fp_kwargs
     elif stage==1:
         pw_kwargs = stage_1
