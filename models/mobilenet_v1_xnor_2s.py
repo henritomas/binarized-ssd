@@ -31,13 +31,9 @@ stage_2 = dict(input_quantizer="ste_sign",
 
 #Depthwise convolutions must always be full precision
 #Too much information loss when dw are binarized
-#d_kwargs = dict(input_quantizer=None,
-#                depthwise_quantizer=None,
-#                depthwise_constraint=None)
-
-d_kwargs = dict(input_quantizer="ste_sign",
-                depthwise_quantizer="xnor_weight_scale",
-                depthwise_constraint="weight_clip")
+d_kwargs = dict(input_quantizer=None,
+                depthwise_quantizer=None,
+                depthwise_constraint=None)
 
 #kwargs = stage_2
 
