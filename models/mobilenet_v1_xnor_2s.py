@@ -53,8 +53,8 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
     return x
 
 #Succeeding layers, are quantized
-def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha, kwargs,
-                          depth_multiplier=1, strides=(1, 1), block_id=1):
+def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
+                          depth_multiplier=1, strides=(1, 1), block_id=1, stage=stage):
  
     channel_axis = 3
     pointwise_conv_filters = int(pointwise_conv_filters * alpha)
@@ -63,8 +63,12 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha, 
         p_kwargs = dict(input_quantizer=None,
                         kernel_quantizer=None,
                         kernel_constraint=None)
+    elif stage==1:
+        p_kwargs = stage_1
+    elif stage==2:
+        p_kwargs = stage_2
     else:
-        p_kwargs = kwargs
+        raise ValueError("Stage must be specified with ints 1 or 2.")
 
     x = QuantDepthwiseConv2D((3, 3),
                         padding='same',
@@ -88,38 +92,31 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha, 
 
 def mobilenet(input_tensor, alpha=1.0, depth_multiplier=1, stage=2):
 
-    if stage==1:
-        kwargs = stage_1
-    elif stage==2:
-        kwargs = stage_2
-    else:
-        raise ValueError("Only stage 1 and 2 are permitted options. Stage 1 is binarized activations, Stage 2 is binarized activations and weights.")
-
     if input_tensor is None:
         input_tensor = Input(shape=(300,300,3))
 
     x = _conv_block(input_tensor, 32, alpha, strides=(2, 2))
-    x = _depthwise_conv_block_classification(x, 64, alpha, depth_multiplier, block_id=1, kwargs=kwargs)
+    x = _depthwise_conv_block_classification(x, 64, alpha, depth_multiplier, block_id=1, stage=stage)
 
     x = _depthwise_conv_block_classification(x, 128, alpha, depth_multiplier,
-                              strides=(2, 2), block_id=2, kwargs=kwargs)
-    x = _depthwise_conv_block_classification(x, 128, alpha, depth_multiplier, block_id=3, kwargs=kwargs)
+                              strides=(2, 2), block_id=2, stage=stage)
+    x = _depthwise_conv_block_classification(x, 128, alpha, depth_multiplier, block_id=3, stage=stage)
 
     x = _depthwise_conv_block_classification(x, 256, alpha, depth_multiplier,
-                              strides=(2, 2), block_id=4, kwargs=kwargs)
-    x = _depthwise_conv_block_classification(x, 256, alpha, depth_multiplier, block_id=5, kwargs=kwargs)
+                              strides=(2, 2), block_id=4, stage=stage)
+    x = _depthwise_conv_block_classification(x, 256, alpha, depth_multiplier, block_id=5, stage=stage)
 
     x = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier,
-                              strides=(2, 2), block_id=6, kwargs=kwargs)
-    x = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=7, kwargs=kwargs)
-    x = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=8, kwargs=kwargs)
-    x = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=9, kwargs=kwargs)
-    x = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=10, kwargs=kwargs)
-    conv4_3 = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=11, kwargs=kwargs) #11 conv4_3 (300x300)-> 19x19 
+                              strides=(2, 2), block_id=6, stage=stage)
+    x = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=7, stage=stage)
+    x = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=8, stage=stage)
+    x = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=9, stage=stage)
+    x = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=10, stage=stage)
+    conv4_3 = _depthwise_conv_block_classification(x, 512, alpha, depth_multiplier, block_id=11, stage=stage) #11 conv4_3 (300x300)-> 19x19 
 
     x = _depthwise_conv_block_classification(conv4_3, 1024, alpha, depth_multiplier,
-                              strides=(2, 2), block_id=12, kwargs=kwargs)   # (300x300) -> 10x10 
-    fc7 = _depthwise_conv_block_classification(x, 1024, alpha, depth_multiplier, block_id=13, kwargs=kwargs) # 13 fc7 (300x300) -> 10x10
+                              strides=(2, 2), block_id=12, stage=stage)   # (300x300) -> 10x10 
+    fc7 = _depthwise_conv_block_classification(x, 1024, alpha, depth_multiplier, block_id=13, stage=stage) # 13 fc7 (300x300) -> 10x10
 
     #model = Model(inputs=input_tensor, outputs=fc7)
     #return model
