@@ -51,7 +51,8 @@ def ssd_300(mode,
             subtract_mean=[123, 117, 104],
             divide_by_stddev=None,
             swap_channels=True,
-            return_predictor_sizes=False):
+            return_predictor_sizes=False,
+            stage=2):
     
 
     n_predictor_layers = 6  # The number of predictor conv layers in the network is 6 for the original SSD300.
@@ -153,7 +154,7 @@ def ssd_300(mode,
     #                name='input_channel_swap')(x1)
 
 
-    conv4_3_norm , fc7 = mobilenet(input_tensor=x1, alpha=1.0, depth_multiplier=1, stage=1)
+    conv4_3_norm , fc7 = mobilenet(input_tensor=x1, alpha=1.0, depth_multiplier=1, stage=stage)
 
     print ("conv11 shape: ", conv4_3_norm.shape)
     print ("conv13 shape: ", fc7.shape)
