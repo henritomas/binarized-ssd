@@ -28,13 +28,9 @@ stage_2 = dict(input_quantizer="ste_sign",
           kernel_constraint="weight_clip")
 
 #Full precision kwargs          
-#fp_kwargs = dict(input_quantizer=None,
-#          kernel_quantizer=None,
-#          kernel_constraint=None)
-
-fp_kwargs = dict(input_quantizer="ste_sign",
-          kernel_quantizer="xnor_weight_scale",
-          kernel_constraint="weight_clip")
+fp_kwargs = dict(input_quantizer=None,
+          kernel_quantizer=None,
+          kernel_constraint=None)
 
 def ssd_300(mode,
             image_size,
