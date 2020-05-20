@@ -59,7 +59,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
     channel_axis = 3
     pointwise_conv_filters = int(pointwise_conv_filters * alpha)
 
-    if not binary_ds and strides=(2,2):
+    if not binary_ds and strides==(2,2):
         p_kwargs = dict(input_quantizer=None,
                         kernel_quantizer=None,
                         kernel_constraint=None)
