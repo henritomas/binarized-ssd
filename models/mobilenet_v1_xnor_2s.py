@@ -79,7 +79,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                         name='conv_dw_%d' % block_id,
                         **d_kwargs)(inputs)
     if use_prelu:
-        x = Activation('prelu', shared_axes=[1,2], name='conv_dw_%d_prelu' % block_id)(x)
+        x = PReLU(shared_axes=[1,2], name='conv_dw_%d_prelu' % block_id)(x)
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_dw_%d_bn' % block_id)(x)
     #x = Activation('relu', name='conv_dw_%d_relu' % block_id)(x)
     
@@ -91,7 +91,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                name='conv_pw_%d' % block_id,
                **p_kwargs)(x)
     if use_prelu:
-        x = Activation('prelu', shared_axes=[1,2], name='conv_pw_%d_prelu' % block_id)(x)
+        x = PReLU(shared_axes=[1,2], name='conv_pw_%d_prelu' % block_id)(x)
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_pw_%d_bn' % block_id)(x)
     #x = Activation('relu', name='conv_pw_%d_relu' % block_id)(x)
     return x
