@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Lambda, Conv2D, DepthwiseConv2D, MaxPooling2D, BatchNormalization, ELU, Reshape, Concatenate, Activation
+from tensorflow.keras.layers import Input, Lambda, Conv2D, DepthwiseConv2D, MaxPooling2D, BatchNormalization, ELU, Reshape, Concatenate, Activation, PReLU
 
 #Larq layers
 import larq as lq
@@ -54,7 +54,8 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
 
 #Succeeding layers, are quantized
 def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
-                          depth_multiplier=1, strides=(1, 1), block_id=1, stage=2, binary_ds=False):
+                          depth_multiplier=1, strides=(1, 1), block_id=1, 
+                          stage=2, binary_ds=False, use_prelu=False):
  
     channel_axis = 3
     pointwise_conv_filters = int(pointwise_conv_filters * alpha)
@@ -77,8 +78,11 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                         use_bias=False,
                         name='conv_dw_%d' % block_id,
                         **d_kwargs)(inputs)
+    if use_prelu:
+        x = Activation('prelu', shared_axes=[1,2], name='conv_dw_%d_prelu' % block_id)(x)
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_dw_%d_bn' % block_id)(x)
     #x = Activation('relu', name='conv_dw_%d_relu' % block_id)(x)
+    
 
     x = QuantConv2D(pointwise_conv_filters, (1, 1),
                padding='same',
@@ -86,15 +90,18 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
                strides=(1, 1),
                name='conv_pw_%d' % block_id,
                **p_kwargs)(x)
+    if use_prelu:
+        x = Activation('prelu', shared_axes=[1,2], name='conv_pw_%d_prelu' % block_id)(x)
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_pw_%d_bn' % block_id)(x)
     #x = Activation('relu', name='conv_pw_%d_relu' % block_id)(x)
     return x
 
-def mobilenet(input_tensor, alpha=1.0, depth_multiplier=1, stage=2, binary_ds=False):
+def mobilenet(input_tensor, alpha=1.0, depth_multiplier=1, stage=2, binary_ds=False, use_prelu=False):
 
     train_args = dict(
         stage=stage,
-        binary_ds=binary_ds
+        binary_ds=binary_ds,
+        use_prelu=use_prelu
     )
 
     if input_tensor is None:

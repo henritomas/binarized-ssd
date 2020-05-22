@@ -59,7 +59,8 @@ def ssd_300(mode,
             return_predictor_sizes=False,
             stage=2,
             binary_head=False,
-            binary_downsample_bb=False):
+            binary_downsample_bb=False,
+            use_prelu=False):
     
     #Binarized pw: pointwise convs
     if not binary_head:
@@ -168,7 +169,8 @@ def ssd_300(mode,
     #                name='input_channel_swap')(x1)
 
 
-    conv4_3_norm , fc7 = mobilenet(input_tensor=x1, alpha=1.0, depth_multiplier=1, stage=stage, binary_ds=binary_downsample_bb)
+    conv4_3_norm , fc7 = mobilenet(input_tensor=x1, alpha=1.0, depth_multiplier=1,
+                                stage=stage, binary_ds=binary_downsample_bb, use_prelu=use_prelu)
 
     print ("conv11 shape: ", conv4_3_norm.shape)
     print ("conv13 shape: ", fc7.shape)
