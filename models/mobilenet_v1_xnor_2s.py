@@ -38,7 +38,7 @@ d_kwargs = dict(input_quantizer=None,
 #kwargs = stage_2
 
 #First layer only, not quantized
-def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
+def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1), use_prelu=False):
 
     channel_axis = 3 #last index is channels
     filters = int(filters * alpha)
@@ -49,7 +49,12 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
                strides=strides,
                name='conv1')(inputs)
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv1_bn')(x)
-    x = Activation('relu', name='conv1_relu')(x)
+
+    if use_prelu:
+        x = PReLU(shared_axes=[1,2], name='conv1_prelu')(x)
+    else:
+        x = Activation('relu', name='conv1_relu')(x)
+
     return x
 
 #Succeeding layers, are quantized
@@ -107,7 +112,7 @@ def mobilenet(input_tensor, alpha=1.0, depth_multiplier=1, stage=2, binary_ds=Fa
     if input_tensor is None:
         input_tensor = Input(shape=(300,300,3))
 
-    x = _conv_block(input_tensor, 32, alpha, strides=(2, 2))
+    x = _conv_block(input_tensor, 32, alpha, strides=(2, 2), use_prelu=use_prelu)
     x = _depthwise_conv_block_classification(x, 64, alpha, depth_multiplier, block_id=1, **train_args)
 
     x = _depthwise_conv_block_classification(x, 128, alpha, depth_multiplier,
