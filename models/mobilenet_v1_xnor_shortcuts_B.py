@@ -86,13 +86,13 @@ def _depthwise_conv_block_classification(inputs, skipcon, pointwise_conv_filters
                         name='conv_dw_%d' % block_id,
                         **d_kwargs)(inputs)
     if use_prelu:
-        sc = PReLU(shared_axes=[1,2], name='conv_dw_%d_prelu' % block_id)(x)
+        sc = PReLU(shared_axes=[1,2], name='conv_dw_%d_prelu' % block_id)(sc)
 
     if not strides==(2,2):
         if sc.shape[-1] == pointwise_conv_filters:
-            sc = Add()([skipcon, x])
+            sc = Add()([skipcon, sc])
         else:
-            sc = Concatenate(axis=-1)([skipcon, x])
+            sc = Concatenate(axis=-1)([skipcon, sc])
 
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_dw_%d_bn' % block_id)(sc)
 
