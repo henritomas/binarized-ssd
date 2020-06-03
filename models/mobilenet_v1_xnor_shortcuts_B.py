@@ -99,7 +99,7 @@ def _depthwise_conv_block_classification(inputs, pointwise_conv_filters, alpha,
 
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_pw_%d_bn' % block_id)(x)
     
-    if not strides==(2,2) or binary_ds:
+    if not strides==(2,2):
         x = Add()([x, sc])
 
     return x
