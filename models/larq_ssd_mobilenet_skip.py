@@ -8,7 +8,7 @@ import tensorflow.keras.backend as K
 
 
 #from models.depthwise_conv2d import DepthwiseConvolution2D
-from models.mobilenet_v1_xnor_2s_skip import mobilenet
+from models.mobilenet_v1_xnor_2s import mobilenet
 
 from keras_layers.tensorflow_keras_layer_AnchorBoxes import AnchorBoxes
 from keras_layers.tensorflow_keras_layer_DecodeDetections import DecodeDetections
@@ -17,7 +17,18 @@ from keras_layers.tensorflow_keras_layer_DecodeDetectionsFast import DecodeDetec
 #Larq layers
 from larq.layers import QuantConv2D, QuantDepthwiseConv2D
 
-kwargs = dict(input_quantizer=None,
+#Stage 1: kernel quantizer and constraint = None (binary activations, real weights)
+stage_1 = dict(input_quantizer="ste_sign",
+          kernel_quantizer=None,
+          kernel_constraint=None)
+
+#Stage 2: kernel quantizer and constraint are set (binary everything)
+stage_2 = dict(input_quantizer="ste_sign",
+          kernel_quantizer="xnor_weight_scale",
+          kernel_constraint="weight_clip")
+
+#Full precision kwargs          
+fp_kwargs = dict(input_quantizer=None,
           kernel_quantizer=None,
           kernel_constraint=None)
 
@@ -45,8 +56,20 @@ def ssd_300(mode,
             subtract_mean=[123, 117, 104],
             divide_by_stddev=None,
             swap_channels=True,
-            return_predictor_sizes=False):
+            return_predictor_sizes=False,
+            stage=2,
+            binary_head=False,
+            binary_downsample_bb=False,
+            use_prelu=False,
+            alpha=1.0):
     
+    #Binarized pw: pointwise convs
+    if not binary_head:
+        pw_kwargs = fp_kwargs
+    elif stage==1:
+        pw_kwargs = stage_1
+    elif stage==2:
+        pw_kwargs = stage_2
 
     n_predictor_layers = 6  # The number of predictor conv layers in the network is 6 for the original SSD300.
     n_classes += 1  # Account for the background class.
@@ -147,7 +170,8 @@ def ssd_300(mode,
     #                name='input_channel_swap')(x1)
 
 
-    conv4_3_norm , fc7 = mobilenet(input_tensor=x1, alpha=1.0, depth_multiplier=1)
+    conv4_3_norm , fc7 = mobilenet(input_tensor=x1, depth_multiplier=1, alpha=alpha,
+                                stage=stage, binary_ds=binary_downsample_bb, use_prelu=use_prelu)
 
     print ("conv11 shape: ", conv4_3_norm.shape)
     print ("conv13 shape: ", fc7.shape)
@@ -155,13 +179,13 @@ def ssd_300(mode,
 
 
     conv6_1 = QuantConv2D(256, (1, 1), padding='same', kernel_initializer='he_normal',
-        kernel_regularizer=l2(l2_reg), name='conv14_1', use_bias=False, **kwargs)(fc7)
+        kernel_regularizer=l2(l2_reg), name='conv14_1', use_bias=False, **pw_kwargs)(fc7)
     conv6_1 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv14_1/bn')(conv6_1)
     conv6_1 = Activation('relu', name='relu_conv6_1')(conv6_1)
 
     conv6_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv6_padding')(conv6_1)
     conv6_2 = QuantConv2D(512, (3, 3), strides=(2, 2), padding='valid', kernel_initializer='he_normal',
-        kernel_regularizer=l2(l2_reg), name='conv14_2', use_bias=False, **kwargs)(conv6_1)
+        kernel_regularizer=l2(l2_reg), name='conv14_2', use_bias=False, **fp_kwargs)(conv6_1)
     conv6_2 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv14_2/bn')(conv6_2)
     conv6_2 = Activation('relu', name='relu_conv6_2')(conv6_2)
 
@@ -170,13 +194,13 @@ def ssd_300(mode,
 
 
     conv7_1 = QuantConv2D(128, (1, 1), padding='same', kernel_initializer='he_normal',
-        kernel_regularizer=l2(l2_reg), name='conv15_1',use_bias=False, **kwargs)(conv6_2)
+        kernel_regularizer=l2(l2_reg), name='conv15_1',use_bias=False, **pw_kwargs)(conv6_2)
     conv7_1 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv15_1/bn')(conv7_1)
     conv7_1 = Activation('relu', name='relu_conv7_1')(conv7_1)
 
     conv7_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv7_padding')(conv7_1)
     conv7_2 = QuantConv2D(256, (3, 3), strides=(2, 2), padding='valid', kernel_initializer='he_normal',
-        kernel_regularizer=l2(l2_reg), name='conv15_2',use_bias=False, **kwargs)(conv7_1)
+        kernel_regularizer=l2(l2_reg), name='conv15_2',use_bias=False, **fp_kwargs)(conv7_1)
     conv7_2 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv15_2/bn')(conv7_2)
     conv7_2 = Activation('relu', name='relu_conv7_2')(conv7_2)
 
@@ -184,24 +208,24 @@ def ssd_300(mode,
     print ('conv15 shape', conv7_2.shape)
 
     conv8_1 = QuantConv2D(128, (1, 1), padding='same', kernel_initializer='he_normal',
-        kernel_regularizer=l2(l2_reg), name='conv16_1',use_bias=False, **kwargs)(conv7_2)
+        kernel_regularizer=l2(l2_reg), name='conv16_1',use_bias=False, **pw_kwargs)(conv7_2)
     conv8_1 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv16_1/bn')(conv8_1)
     conv8_1 = Activation('relu', name='relu_conv8_1')(conv8_1)
     conv8_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv8_padding')(conv8_1)
     conv8_2 = QuantConv2D(256, (3, 3), strides=(2, 2), padding='valid', kernel_initializer='he_normal',
-        kernel_regularizer=l2(l2_reg), name='conv16_2',use_bias=False, **kwargs)(conv8_1)
+        kernel_regularizer=l2(l2_reg), name='conv16_2',use_bias=False, **fp_kwargs)(conv8_1)
     conv8_2 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv16_2/bn')(conv8_2)
     conv8_2 = Activation('relu', name='relu_conv8_2')(conv8_2)
 
     print ('conv16 shape', conv8_2.shape)
     
     conv9_1 = QuantConv2D(64, (1, 1), padding='same', kernel_initializer='he_normal',
-        kernel_regularizer=l2(l2_reg), name='conv17_1',use_bias=False, **kwargs)(conv8_2)
+        kernel_regularizer=l2(l2_reg), name='conv17_1',use_bias=False, **pw_kwargs)(conv8_2)
     conv9_1 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv17_1/bn')(conv9_1)
     conv9_1 = Activation('relu', name='relu_conv9_1')(conv9_1)
     conv9_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv9_padding')(conv9_1)
     conv9_2 = QuantConv2D(128, (3, 3), strides=(2, 2), padding='valid', kernel_initializer='he_normal',
-        kernel_regularizer=l2(l2_reg), name='conv17_2',use_bias=False, **kwargs)(conv9_1)
+        kernel_regularizer=l2(l2_reg), name='conv17_2',use_bias=False, **fp_kwargs)(conv9_1)
     conv9_2 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv17_2/bn')(conv9_2)
     conv9_2 = Activation('relu', name='relu_conv9_2')(conv9_2)
 
