@@ -78,7 +78,7 @@ def _depthwise_conv_block_classification(inputs, skipcon, pointwise_conv_filters
 
     ## DEPTHWISE
 
-    sc = QuantDepthwiseConv2D((3, 3),
+    x = QuantDepthwiseConv2D((3, 3),
                         padding='same',
                         depth_multiplier=depth_multiplier,
                         strides=strides,
@@ -86,13 +86,14 @@ def _depthwise_conv_block_classification(inputs, skipcon, pointwise_conv_filters
                         name='conv_dw_%d' % block_id,
                         **d_kwargs)(inputs)
     if use_prelu:
-        sc = PReLU(shared_axes=[1,2], name='conv_dw_%d_prelu' % block_id)(sc)
+        x = PReLU(shared_axes=[1,2], name='conv_dw_%d_prelu' % block_id)(x)
 
     if not strides==(2,2):
-        if sc.shape[-1] == pointwise_conv_filters:
-            sc = Add()([skipcon, sc])
+        if x.shape[-1] == pointwise_conv_filters:
+            x = Add()([skipcon, x])
         else:
-            sc = Concatenate(axis=-1)([skipcon, sc])
+            x = Concatenate(axis=-1)([skipcon, x])
+    sc = x
 
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_dw_%d_bn' % block_id)(sc)
 
@@ -107,7 +108,10 @@ def _depthwise_conv_block_classification(inputs, skipcon, pointwise_conv_filters
     if use_prelu:
         x = PReLU(shared_axes=[1,2], name='conv_pw_%d_prelu' % block_id)(x)
     
-    sc = Add()([sc, x])
+    if not strides==(2,2):
+        x = Add()([sc, x])
+    sc = x
+    
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_pw_%d_bn' % block_id)(sc)
     
     return x, sc
