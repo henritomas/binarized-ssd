@@ -88,7 +88,7 @@ def _depthwise_conv_block_classification(inputs, skipcon, pointwise_conv_filters
     if use_prelu:
         x = PReLU(shared_axes=[1,2], name='conv_dw_%d_prelu' % block_id)(x)
 
-    if strides==(2,2):
+    if strides!=(2,2):
         if x.shape[-1] == pointwise_conv_filters:
             sc = Add()([skipcon, x])
         else:
