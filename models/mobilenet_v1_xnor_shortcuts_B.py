@@ -91,7 +91,7 @@ def _depthwise_conv_block_classification(inputs, skipcon, pointwise_conv_filters
     if x.shape[-1] == pointwise_conv_filters:
         sc = Add()([skipcon, x])
     else:
-        sc = Concatenate([skipcon, x], axis=-1)
+        sc = Concatenate(axis=-1)([skipcon, x])
 
     x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_dw_%d_bn' % block_id)(sc)
 
