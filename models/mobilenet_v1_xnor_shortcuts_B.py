@@ -90,11 +90,11 @@ def _depthwise_conv_block_classification(inputs, skipcon, pointwise_conv_filters
 
     if not strides==(2,2):
         if x.shape[-1] == pointwise_conv_filters:
-            sc = Add()([skipcon, x])
+            x = Add()([skipcon, x])
         else:
-            sc = Concatenate(axis=-1)([skipcon, x])
+            x = Concatenate(axis=-1)([skipcon, x])
 
-    x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_dw_%d_bn' % block_id)(sc)
+    x = BatchNormalization(axis=channel_axis, momentum=0.99, epsilon=0.001, name='conv_dw_%d_bn' % block_id)(x)
 
     ## POINTWISE
 
